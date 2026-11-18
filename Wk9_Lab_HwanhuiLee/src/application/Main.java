@@ -32,8 +32,8 @@ public class Main extends Application {
 		BorderPane pane = new BorderPane();
 		
 		//header
-		Label title = new Label("Title");
-		Label subtitle = new Label("subtitle");
+		Label title = new Label("Hospital Management System");
+		Label subtitle = new Label("Patient Registration and Records Management");
 		
 		VBox header = new VBox(title, subtitle);
 		
@@ -298,7 +298,7 @@ public class Main extends Application {
             }
         });
 
-     // DELETE PATIENT
+        //DELETE PATIENT
         deleteButton.setOnAction(e -> {
 
             Patient selectedPatient =
@@ -309,35 +309,51 @@ public class Main extends Application {
                 return;
             }
 
-            try {
-                boolean deleted = patientDao.deletePatient(
-                        selectedPatient.getPatientId()
-                );
+            Alert alert = new Alert(AlertType.CONFIRMATION);
 
-                if (deleted) {
-                    recordsTable.getItems().remove(selectedPatient);
+            alert.setTitle("Delete Patient");
+            alert.setHeaderText("Confirm Patient Deletion");
+            alert.setContentText(
+                    "Are you sure you want to delete "
+                    + selectedPatient.getName() + "?"
+            );
 
-                    clearForm(
-                            patientIdField,
-                            nameField,
-                            ageField,
-                            genderBox,
-                            phoneField,
-                            diagnosisField,
-                            admissionDate
+            if (alert.showAndWait().orElse(ButtonType.CANCEL)
+                    == ButtonType.OK) {
+
+                try {
+                    boolean deleted = patientDao.deletePatient(
+                            selectedPatient.getPatientId()
                     );
 
-                    recordsTable.getSelectionModel().clearSelection();
+                    if (deleted) {
 
-                    status.setText("Patient deleted successfully.");
+                        recordsTable.getItems().setAll(
+                                patientDao.getAllPatients()
+                        );
 
-                } else {
-                    status.setText("No patient was deleted.");
+                        clearForm(
+                                patientIdField,
+                                nameField,
+                                ageField,
+                                genderBox,
+                                phoneField,
+                                diagnosisField,
+                                admissionDate
+                        );
+
+                        recordsTable.getSelectionModel().clearSelection();
+
+                        status.setText("Patient deleted successfully.");
+
+                    } else {
+                        status.setText("No patient was deleted.");
+                    }
+
+                } catch (SQLException ex) {
+                    status.setText("Database error: " + ex.getMessage());
+                    ex.printStackTrace();
                 }
-
-            } catch (SQLException ex) {
-                status.setText("Database error: " + ex.getMessage());
-                ex.printStackTrace();
             }
         });
 
